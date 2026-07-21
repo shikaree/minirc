@@ -1,0 +1,137 @@
+MinIRC Console IRC client for Win32 and Linux - Documentation
+
+Index:
+
+1.) About MinIRC
+2.) General use
+ 2.1.) Logging on
+ 2.2.) General use of commands
+ 2.3.) Status messages
+ 2.4.) Automatic responses
+3.) Commands
+ 3.1.) Aliases
+ 3.2.) Common server commands
+
+
+1.) About MinIRC
+
+     MinIRC was from the beginning meant to be a plain TCP channeling
+    program only capable of sending keypresses from the users keyboard
+    to the server and printing the servers responses on the screen. The
+    purpose of such a program would be testing of IRC server software
+    responses.
+     When I started using the program I became aware of several annoying
+    facts about raw TCP communications with an IRC server:
+     1. Almost every IRC server sends IACs. IACs are TELNET commands
+        responsible for negotiating capabilities of a TELNET terminal.
+        This is NOT included in RFC 1459, but they are still used and
+        shows up as random characters at the screen.
+     2. IRC servers PING their clients. You have a specified time to
+        respond and if you leave your computer for a couple of minutes
+        you'll get logged out.
+     3. You get many keyboard problems. Backspace doesn't always work
+        since you don't have anything saving the preceeding characters.
+     I decided to make an IRC client capable of correcting all those flaws,
+    but still make it possible for me to send commands directly to the
+    server. MinIRC was born.
+
+
+2.) General use
+
+     This is only a short description of how to use this program, not a
+    guide to IRC it self.
+
+ 2.1.) Logging on
+
+     To connect to a server you simply start MinIRC like this:
+
+    MinIRC [nickname] [server] <port> <-i>
+
+     The port is optional and defaults to 6667.
+    The nickname shouldn't be longer than 9 characters. Although MinIRC
+    allows longer nicknames, many servers do not.
+     MinIRC sets all usernames equal to the nickname.
+     <-i> means that MinIRC should use the built-in ident server. Some
+    irc-servers require identd. On Linux the ident server binds port 113,
+    which needs root; leave <-i> off otherwise.
+
+ 2.2.) General use of commands
+
+     Commands must be prefixed with slash "/". It was optional in
+    previous versions av MinIRC. NOT so now!
+
+     You send to the active channel/nick just typing the message.
+    If you wan't to change the active channel you simply type "/#" in front
+    of the channel/nick name. For example, if you want to make the channel
+    #help your active channel you type /##help.
+
+ 2.3.) Status messages
+
+     There are two types of status messages - server and client messages.
+    The server messages are prefixed by "---" and the client messages are
+    prefixed by "***". 
+
+
+ 2.4.) Automatic responses
+
+     MinIRC handles a few things on its own. It answers server PINGs so
+    you don't get timed out, and it responds to the common CTCP queries
+    from other users - VERSION, PING and TIME. Whenever a CTCP request
+    arrives a "[CTCP from ...]" line is printed so you can see it.
+     Replies to WHO and WHOIS are formatted into a readable listing
+    instead of raw server output; WHOIS idle times are shown like
+    "4d 7h 20m 12s".
+
+
+3.) Commands
+
+     There are two types of commands - server commands and client
+    aliases. When you type a command in MinIRC it first tries to process
+    the command it self thru a set of predefined aliases. If it doesn't
+    find any alias matching the command the entire line is sent to the
+    server, making it responsible of taking appropriate action.
+
+ 3.1.) Aliases
+    /#[channel/nick]          - Set <channel/nick> as active channel/nick. 
+    /[command]                - Compatibility slash. Is removed before it is
+                                processed.
+    /auto <message>           - Sets autoreply and away message.
+                                Just /auto turns autoreply and away off.
+    /ctcp [nick] [message]    - Sends a ctcp message to a user.
+    /join [channel]           - Joins or creates a channel. It also sets
+                                the channel as active channel.
+    /me [message]             - Sends an action to active channel.
+    /msg [nick/channel]
+         [message]            - Sends a private message to the user <nick>.
+    /userinfo [nick]          - Shows extended info about a user.
+    /ver                      - Shows MinIRC version
+    /w                        - Lists nicknames in active channel.
+
+ 3.2.) Common server commands
+    AWAY [message]            - Marks you as being away.
+    INVITE [nick] [channel]   - Invites a user to a channel.
+    ISON [nick] <nick> ...    - Checks if a user is on this server.
+    KICK [channel] [user]
+         :<comment>           - Forces a user to PART the channel.
+    MODE <channel> [+/- mode] - Sets a new mode for the channel or
+         <limit> <user>         for a user.
+         <banmask>               
+                                Modes:
+                                      o - give/take operator privileges
+                                      p - private
+                                      s - secret
+                                      i - invite-only
+                                      t - topic only by operator
+                                      n - no external messages
+                                      m - moderated
+                                      l - user limit
+    NAMES <channel>           - Lists all nicknames in channel.
+    NICK [nick]               - Changes your nickname.   
+    PART [channel]            - Parts a channel.
+    TOPIC [channel] :<topic>  - Sets the topic on <channel>. If no topic
+                                is specified it returns the topic.
+    WHO [name]                - Searches for a user. Wildcards may be used.
+    WHOIS [nick]              - Lists all information the server has on
+                                the user <nick>.
+    QUIT <message>            - Logs of the IRC server displaying
+                                <message>. <message> can be omitted.
