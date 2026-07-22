@@ -71,6 +71,7 @@ void irc_alias_replace (char *buf, char *alias, char *replacestring);
 void irc_CTCP_reply (SOCKET socketnr, char *nickname, char *message);
 void kbd_showbuf (char *kbdbuf);
 void kbd_clearline(void);
+int  display_columns(void);
 void version_string (char *text, int startup);
 SOCKET identd_startup(void);
 int identd_poll(SOCKET socketnr, char *nickname);
@@ -87,6 +88,7 @@ extern char IRC_ACTIVE_CHANNEL[600];
 extern int CLIENT_SAYS_QUIT;
 
 #define VERSION "0.1.6"
+/* Fallback terminal width, used only when the runtime query fails. */
 #define DISPLAY_ASSUME_COLUMNS 80
 
 #endif /* MINIRC_HEADERS_H */

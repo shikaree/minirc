@@ -14,9 +14,21 @@ void kbd_restore(void) {}
 int  kbd_kbhit(void)   { return kbhit(); }
 int  kbd_getch(void)   { return getch(); }
 
+/* Current console width in columns. */
+int display_columns(void) {
+ CONSOLE_SCREEN_BUFFER_INFO csbi;
+ if (GetConsoleScreenBufferInfo(GetStdHandle(STD_OUTPUT_HANDLE),&csbi)) {
+   int w=csbi.srWindow.Right-csbi.srWindow.Left+1;
+   if (w>0)
+    return w;
+  }
+ return DISPLAY_ASSUME_COLUMNS;
+}
+
 #else /* POSIX */
 
 #include <termios.h>
+#include <sys/ioctl.h>
 
 static struct termios KBD_SAVED_TERM;
 static int KBD_RAW=0;
@@ -86,6 +98,14 @@ int kbd_getch(void) {
   }
 
  return c;
+}
+
+/* Current terminal width in columns, via TIOCGWINSZ. */
+int display_columns(void) {
+ struct winsize ws;
+ if (ioctl(STDOUT_FILENO,TIOCGWINSZ,&ws)==0 && ws.ws_col>0)
+  return ws.ws_col;
+ return DISPLAY_ASSUME_COLUMNS;
 }
 
 #endif /* _WIN32 */
@@ -164,7 +184,7 @@ int kbd_stuffbuf (char *buf, int maxchars) {
     /* Cut the buffer by one. */
     buf[strlen(buf)-1]=0;
     /* Are we over the edge? */
-    if (strlen(buf)>=DISPLAY_ASSUME_COLUMNS-2) {
+    if ((int)strlen(buf)>=display_columns()-2) {
       kbd_clearline();
       kbd_showbuf(buf);
      }
@@ -188,7 +208,7 @@ int kbd_stuffbuf (char *buf, int maxchars) {
  buf[len+1]=0;
 
  /* Are we over the edge? */
- if (strlen(buf)>=DISPLAY_ASSUME_COLUMNS-1) {
+ if ((int)strlen(buf)>=display_columns()-1) {
    kbd_clearline();
    kbd_showbuf(buf);
   }
@@ -203,13 +223,13 @@ int kbd_stuffbuf (char *buf, int maxchars) {
 
 /* Function to clear command line. */
 void kbd_clearline(void) {
- int i;
+ int i,cols=display_columns();
 
- for (i=0;i<DISPLAY_ASSUME_COLUMNS-1;i++)
+ for (i=0;i<cols-1;i++)
   printf("%c",8);
- for (i=0;i<DISPLAY_ASSUME_COLUMNS-1;i++)
+ for (i=0;i<cols-1;i++)
   printf("%c",32);
- for (i=0;i<DISPLAY_ASSUME_COLUMNS-1;i++)
+ for (i=0;i<cols-1;i++)
   printf("%c",8);
 
  return;
@@ -218,18 +238,19 @@ void kbd_clearline(void) {
 
 
 
-/* This function shows the command line cut for DISPLAY_ASSUME_COLUMNS */
+/* This function shows the command line cut for the terminal width. */
 void kbd_showbuf (char *kbdbuf) {
  char *startptr;
+ int cols=display_columns();
 
- /* No sense in cutting if we have less than DISPLAY_ASSUME_COLUMNS chars. */
- if (strlen(kbdbuf)<DISPLAY_ASSUME_COLUMNS-1) {
+ /* No sense in cutting if we have less than a screen width of chars. */
+ if ((int)strlen(kbdbuf)<cols-1) {
    printf("%s",kbdbuf);
    return;
   }
 
  /* Set up the pointer. */
- startptr=(char *) ((kbdbuf+strlen(kbdbuf))-(DISPLAY_ASSUME_COLUMNS-2));
+ startptr=(char *) ((kbdbuf+strlen(kbdbuf))-(cols-2));
 
  /* Print $-sign to show that we're out of bound. */
  printf("$");
