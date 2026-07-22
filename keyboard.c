@@ -223,6 +223,9 @@ int kbd_stuffbuf (char *buf, int maxchars) {
 
 /* Function to clear command line. */
 void kbd_clearline(void) {
+#ifdef _WIN32
+ /* The Windows console has no auto-left-margin, so the classic
+    backspace/space/backspace dance is safe here. */
  int i,cols=display_columns();
 
  for (i=0;i<cols-1;i++)
@@ -231,9 +234,16 @@ void kbd_clearline(void) {
   printf("%c",32);
  for (i=0;i<cols-1;i++)
   printf("%c",8);
+#else
+ /* Return to column 0 and erase to end of line with ANSI (VT100 EL). Robust
+    across xterm, PuTTY, screen and tmux. The old backspace+space method broke
+    on terminals that have the auto-left-margin (bw) capability - GNU screen
+    among them - where the surplus backspaces wrap up into previous lines and
+    clobber earlier output (the "disappearing lines"). */
+ printf("\r\033[K");
+#endif
 
  return;
-
 }
 
 
