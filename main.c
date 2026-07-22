@@ -26,6 +26,12 @@ int main(int argc, char *argv[])
  int port;
  size_t promptlen;
 
+ /* We echo keystrokes ourselves and move the cursor with backspaces, so
+    stdout must be unbuffered. Without this a Linux tty line-buffers output:
+    typed characters stay invisible until a newline and the cursor desyncs
+    so lines don't start at column 0. */
+ setvbuf(stdout, NULL, _IONBF, 0);
+
  /* Show program info. This could be fun if out of memory. */
  program_info=(char *)malloc(256);
  version_string (program_info,1);
