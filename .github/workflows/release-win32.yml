@@ -37,8 +37,10 @@ jobs:
         shell: msys2 {0}
         # OS=Windows_NT picks the Win32 branch of the Makefile (msys2's shell
         # doesn't export it). -static avoids a runtime dependency on the
-        # toolchain's libgcc/libwinpthread DLLs.
-        run: make OS=Windows_NT LDFLAGS=-static
+        # toolchain's libgcc/libwinpthread DLLs; -s strips the release binary,
+        # which matters here because msys2's static libs carry DWARF debug
+        # info that -static would otherwise drag in (~130 KB of it).
+        run: make OS=Windows_NT LDFLAGS="-static -s"
 
       - name: Collect release info
         id: info
