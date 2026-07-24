@@ -22,14 +22,10 @@ Index:
     responses.
      When I started using the program I became aware of several annoying
     facts about raw TCP communications with an IRC server:
-     1. Almost every IRC server sends IACs. IACs are TELNET commands
-        responsible for negotiating capabilities of a TELNET terminal.
-        This is NOT included in RFC 1459, but they are still used and
-        shows up as random characters at the screen.
-     2. IRC servers PING their clients. You have a specified time to
+     1. IRC servers PING their clients. You have a specified time to
         respond and if you leave your computer for a couple of minutes
         you'll get logged out.
-     3. You get many keyboard problems. Backspace doesn't always work
+     2. You get many keyboard problems. Backspace doesn't always work
         since you don't have anything saving the preceeding characters.
      I decided to make an IRC client capable of correcting all those flaws,
     but still make it possible for me to send commands directly to the
