@@ -101,7 +101,7 @@ int main(int argc, char *argv[])
     exit(0);
    }
 
-  gotline=tcp_poll_line (socketnr, inbuf, 599, 10,1);
+  gotline=tcp_poll_line (socketnr, inbuf, 599, 10);
 
    if (gotline) {
      /* Clear the command line for server output. */

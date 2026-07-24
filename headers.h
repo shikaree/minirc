@@ -52,7 +52,7 @@ int  kbd_kbhit(void);
 int  kbd_getch(void);
 
 SOCKET tcp_connect(char *hostname, int port);
-int tcp_poll_line (SOCKET socketnr, char *buf, int maxsize, int stopchar, int stripIAC);
+int tcp_poll_line (SOCKET socketnr, char *buf, int maxsize, int stopchar);
 int tcp_sendchar (SOCKET socketnr, int character);
 int tcp_send (SOCKET socketnr, char *buf, int bytes);
 int tcp_recv (SOCKET socketnr, char *buf, int bytes);

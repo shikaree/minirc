@@ -85,85 +85,17 @@ SOCKET tcp_connect(char *hostname, int port)
    \0-terminated array!
    The function only adds to buf. When returnvalue 1 is returned from
    the function, the user must set buf[0]=0 or tcp_poll_line
-   will just continue adding to the buffer.
-   You cannot use any other receive function when using stripIAC, or
-   you'll loose bytes.
-
-   With stripIAC set the reader understands the full TELNET framing an IRC
-   server may interleave with the data (RFC 854), not just fixed 3-byte
-   commands: WILL/WONT/DO/DONT + option, the stand-alone commands, IAC IAC
-   for a literal 0xFF, and IAC SB ... IAC SE subnegotiations. A lone 0xFF
-   that is not followed by a command byte is treated as data, so a stray
-   0xFF in a message no longer eats the bytes after it. */
-int tcp_poll_line (SOCKET socketnr, char *buf, int maxsize, int stopchar, int stripIAC) {
+   will just continue adding to the buffer. */
+int tcp_poll_line (SOCKET socketnr, char *buf, int maxsize, int stopchar) {
  int len;
  unsigned char receivebuf[2];
  unsigned char c;
- /* TELNET IAC parser state, kept across calls (one byte per call):
-    0 normal, 1 just saw IAC, 2 expecting an option byte to discard,
-    3 inside a subnegotiation, 4 inside a subnegotiation having seen IAC. */
- static int iac_state=0;
 
  /* Get data from network buffer. */
  if (!tcp_recv(socketnr,(char *)receivebuf,1))
   return 0;    /* No data, goodbye. (shouldn't happen, since we have select) */
 
  c=receivebuf[0];
-
- if (stripIAC) {
-   switch (iac_state) {
-
-    case 1:  /* previous byte was IAC (255); c says what kind of command */
-     if (c==250) {                 /* SB - a subnegotiation begins */
-       iac_state=3;
-       return 0;
-      }
-     if (c>=251 && c<=254) {       /* WILL/WONT/DO/DONT - one option follows */
-       iac_state=2;
-       return 0;
-      }
-     if (c>=240 && c<=249) {       /* stand-alone two-byte command */
-       iac_state=0;
-       return 0;
-      }
-     /* c==255 is a literal 0xFF (IAC IAC); anything else means the IAC was
-        not a real command, so treat that 0xFF as data too. Emit the pending
-        0xFF, then let c fall through to be stored (unless it was the second
-        IAC, which the emitted byte already represents). */
-     iac_state=0;
-     len=strlen(buf);
-     if (len+1<maxsize) {
-       buf[len]=255;
-       buf[len+1]=0;
-      }
-     if (c==255)
-      return 0;
-     break;
-
-    case 2:  /* the option byte after WILL/WONT/DO/DONT - discard it */
-     iac_state=0;
-     return 0;
-
-    case 3:  /* inside a subnegotiation - swallow until IAC SE */
-     if (c==255)
-      iac_state=4;
-     return 0;
-
-    case 4:  /* inside a subnegotiation and just saw IAC */
-     if (c==240)              /* SE - subnegotiation ends */
-      iac_state=0;
-     else if (c!=255)         /* some other command, keep swallowing */
-      iac_state=3;
-     return 0;
-
-    default: /* iac_state 0 - normal data */
-     if (c==255) {
-       iac_state=1;
-       return 0;
-      }
-     break;
-   }
-  }
 
  /* Paste in to buffer. */
  len=strlen(buf);
