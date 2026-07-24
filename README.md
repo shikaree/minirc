@@ -4,6 +4,11 @@ A minimal console IRC client for Win32 and Linux by Andreas Westling.
 
 This is really old code I made a refresh of in 2026.
 
+## Download
+
+[**MinIRC.exe**](https://github.com/shikaree/minirc/releases/latest/download/MinIRC.exe)
+— 64-bit Windows build of the latest `main`, no install needed. Built
+automatically by GitHub Actions on every push.
 
 ## Building
 
