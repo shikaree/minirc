@@ -27,7 +27,7 @@ OBJS = main.o irc.o tcp_socket.o keyboard.o identd.o
 all: $(EXE)
 
 $(EXE): $(OBJS)
-	$(CC) -o $@ $(OBJS) $(LDLIBS)
+	$(CC) $(LDFLAGS) -o $@ $(OBJS) $(LDLIBS)
 
 $(OBJS): headers.h
 
