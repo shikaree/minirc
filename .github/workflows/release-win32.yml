@@ -1,8 +1,9 @@
 name: Win32 release
 
-# Every push to main rebuilds MinIRC.exe and overwrites the rolling
-# "latest" release, so the download URL never changes:
-# https://github.com/shikaree/minirc/releases/latest/download/MinIRC.exe
+# Every push to main rebuilds MinIRC and overwrites the rolling "latest"
+# release with both binaries, so the download URLs never change:
+#   64-bit: https://github.com/shikaree/minirc/releases/latest/download/MinIRC.exe
+#   32-bit: https://github.com/shikaree/minirc/releases/latest/download/MinIRC32.exe
 
 on:
   push:
@@ -26,21 +27,29 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set up MinGW-w64
+      - name: Set up MinGW-w64 (64- and 32-bit)
         uses: msys2/setup-msys2@v2
         with:
-          msystem: UCRT64
+          msystem: MINGW64
           update: false
-          install: mingw-w64-ucrt-x86_64-gcc make
+          install: mingw-w64-x86_64-gcc mingw-w64-i686-gcc make
 
-      - name: Build
+      # OS=Windows_NT picks the Win32 branch of the Makefile (msys2's shell
+      # doesn't export it). -static avoids a runtime dependency on the
+      # toolchain's libgcc/libwinpthread DLLs; -s strips the release binary,
+      # which matters here because msys2's static libs carry DWARF debug
+      # info that -static would otherwise drag in (~130 KB of it).
+      - name: Build 64-bit (MinIRC.exe)
         shell: msys2 {0}
-        # OS=Windows_NT picks the Win32 branch of the Makefile (msys2's shell
-        # doesn't export it). -static avoids a runtime dependency on the
-        # toolchain's libgcc/libwinpthread DLLs; -s strips the release binary,
-        # which matters here because msys2's static libs carry DWARF debug
-        # info that -static would otherwise drag in (~130 KB of it).
         run: make OS=Windows_NT LDFLAGS="-static -s"
+
+      # The 64-bit toolchain is not multilib, so the 32-bit build uses the
+      # separate i686 compiler in /mingw32. Putting it first on PATH makes
+      # `gcc` resolve to it (and loads its DLLs); the `win32` target compiles
+      # straight from source, so it never touches the 64-bit .o files above.
+      - name: Build 32-bit (MinIRC32.exe)
+        shell: msys2 {0}
+        run: PATH="/mingw32/bin:$PATH" make win32 CC32=gcc LDFLAGS="-static -s"
 
       - name: Collect release info
         id: info
@@ -64,8 +73,13 @@ jobs:
           tag_name: latest
           name: MinIRC ${{ steps.info.outputs.version }} (${{ steps.info.outputs.sha }})
           body: |
-            Automatic Win32 build of [`${{ steps.info.outputs.sha }}`](${{ github.server_url }}/${{ github.repository }}/commit/${{ github.sha }}).
+            Automatic Windows build of [`${{ steps.info.outputs.sha }}`](${{ github.server_url }}/${{ github.repository }}/commit/${{ github.sha }}).
 
-            Console IRC client, no install needed — download `MinIRC.exe` and run it.
+            Console IRC client, no install needed — download and run:
+
+            - `MinIRC.exe` — 64-bit (64-bit Windows XP and later)
+            - `MinIRC32.exe` — 32-bit (runs on 32- and 64-bit Windows)
           make_latest: true
-          files: MinIRC.exe
+          files: |
+            MinIRC.exe
+            MinIRC32.exe
